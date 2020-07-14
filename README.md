@@ -1,12 +1,12 @@
 # Kotlin multiplatform / multi-format reflectionless serialization
 
-[![JetBrains incubator project](https://jb.gg/badges/incubator.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
+[![official JetBrains project](https://jb.gg/badges/official.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
 [![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0)
 [![TeamCity build](https://img.shields.io/teamcity/http/teamcity.jetbrains.com/s/KotlinTools_KotlinxSerialization_Ko.svg)](https://teamcity.jetbrains.com/viewType.html?buildTypeId=KotlinTools_KotlinxSerialization_Ko&guest=1)
-[![Download](https://api.bintray.com/packages/kotlin/kotlinx/kotlinx.serialization.runtime/images/download.svg) ](https://bintray.com/kotlin/kotlinx/kotlinx.serialization.runtime/_latestVersion)
+[![Download](https://api.bintray.com/packages/kotlin/kotlinx/kotlinx.serialization.runtime/images/download.svg?version=0.20.0) ](https://bintray.com/kotlin/kotlinx/kotlinx.serialization.runtime/0.20.0)
 
 Kotlin serialization consists of a compiler plugin, that generates visitor code for serializable classes,
- runtime library with core serialization API and JSON format, and support libraries with ProtoBuf, CBOR and properties formats.
+ runtime libraries with core serialization API and JSON format, and support libraries with ProtoBuf, CBOR and properties formats.
 
 * Supports Kotlin classes marked as `@Serializable` and standard collections.
 * Provides JSON, [CBOR](formats/README.md#CBOR), and [Protobuf](formats/README.md#ProtoBuf) formats.
@@ -14,65 +14,55 @@ Kotlin serialization consists of a compiler plugin, that generates visitor code 
 
 ## Table of contents
 
-* [Quick example](#quick-example)
-* [Runtime overview](#runtime-overview)
-* [Current status](#current-project-status)
-* [Library installing](#setup)
-    + [Gradle](#gradle)
-    + [Android/JVM](#androidjvm)
-    + [Multiplatform (common, JS, Native)](#multiplatform-common-js-native)
-    + [Maven/JVM](#mavenjvm)
-    + [Incompatible changes from older versions](#incompatible-changes)
+<!--- TOC -->
+
+* [Introduction](#introduction)
+* [Current project status](#current-project-status)
+* [Setup](#setup)
+  * [Gradle](#gradle)
+    * [Using the `plugins` block](#using-the-plugins-block)
+    * [Using `apply plugin` (the old way)](#using-apply-plugin-the-old-way)
+    * [Dependency on the runtime library](#dependency-on-the-runtime-library)
+  * [Android/JVM](#android/jvm)
+  * [Multiplatform (common, JS, Native)](#multiplatform-common-js-native)
+  * [Maven/JVM](#maven/jvm)
+  * [Incompatible changes](#incompatible-changes)
 * [Troubleshooting IntelliJ IDEA](#troubleshooting-intellij-idea)
-* [Usage](docs/runtime_usage.md)
-* [More examples of supported Kotlin classes](docs/examples.md)
-* [Writing JSON transformations](docs/json_transformations.md)
-* [Writing custom serializers](docs/custom_serializers.md)
-* [Multiplatform polymorphic serialization](docs/polymorphism.md)
-* [Add-on formats](formats/README.md)
-* [Building library and compiler plugin from source](docs/building.md)
-* [Instructions for old versions under Kotlin 1.2 and migration guide](docs/old12.md)
 
+<!--- END -->
 
-## Quick example
+## Introduction
+
+Here is a small example.
 
 ```kotlin
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
-@Serializable
-data class Data(val a: Int, val b: String = "42")
+@Serializable 
+data class Project(val name: String, val language: String)
 
 fun main() {
-    // Json also has .Default configuration which provides more reasonable settings,
-    // but is subject to change in future versions
-    val json = Json(JsonConfiguration.Stable)
-    // serializing objects
-    val jsonData = json.stringify(Data.serializer(), Data(42))
-    // serializing lists
-    val jsonList = json.stringify(Data.serializer().list, listOf(Data(42)))
-    println(jsonData) // {"a": 42, "b": "42"}
-    println(jsonList) // [{"a": 42, "b": "42"}]
-
-    // parsing data back
-    val obj = json.parse(Data.serializer(), """{"a":42}""") // b is optional since it has default value
-    println(obj) // Data(a=42, b="42")
+    // Serializing objects
+    val data = Project("kotlinx.serialization", "Kotlin")
+    val string = Json.encodeToString(data)  
+    println(string) // {"name":"kotlinx.serialization","language":"Kotlin"} 
+    // Deserializing back into objects
+    val obj = Json.decodeFromString<Project>(string)
+    println(obj) // Project(name=kotlinx.serialization, langauge=Kotlin)
 }
-```
+``` 
 
-## Runtime overview
+> You can get the full code [here](guide/example/example-readme-01.kt).
 
-This project contains the runtime library. Runtime library provides:
+<!--- TEST_NAME ReadmeTest -->
 
-* Ready-to-use JSON serialization format.
-* Core primitives for plugin-generated code (`Encoder`, `Decoder`, `SerialDescriptor`).
-* Basic skeleton implementations of core primitives for custom serialization formats. 
-* Built-ins and collections serializers.
+<!--- TEST 
+{"name":"kotlinx.serialization","language":"Kotlin"}
+Project(name=kotlinx.serialization, language=Kotlin)
+-->
 
-You can open example projects for [JS](examples/example-js) and [JVM](examples/example-jvm).
-
-To learn more about JSON usage and other formats, see [usage](docs/runtime_usage.md).
-More examples of various kinds of Kotlin classes that can be serialized can be found [here](docs/examples.md).
+**Read the [Kotlin Serialization Guide](docs/serialization-guide.md) for all details.**
 
 ## Current project status
 
@@ -83,7 +73,7 @@ This document describes setup for Kotlin 1.3 and higher. To watch instructions r
 
 ## Setup
 
-Using Kotlin Serialization requires Kotlin compiler `1.3.30` or higher.
+Using Kotlin Serialization requires Kotlin compiler `1.3.70` or higher.
 Make sure that you have corresponding Kotlin plugin installed in the IDE.
 Since serialization is now bundled into Kotlin plugin, no additional plugins for IDE are required (but make sure you have deleted old additional plugin for 1.2, if you had one).
 Example projects on JVM are available for [Gradle](examples/example-jvm/build.gradle) and [Maven](examples/example-jvm/pom.xml).

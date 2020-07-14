@@ -98,7 +98,8 @@ public abstract class AbstractPolymorphicSerializer<T : Any> internal constructo
 }
 
 private fun throwSubtypeNotRegistered(subClassName: String, baseClass: KClass<*>): Nothing =
-    throw SerializationException("$subClassName is not registered for polymorphic serialization in the scope of $baseClass")
+    throw SerializationException("Class '$subClassName' is not registered for polymorphic serialization in the scope of '${baseClass.simpleName}'.\n" +
+        "Mark the base class as 'sealed' or register serializer explicitly.")
 
 internal fun throwSubtypeNotRegistered(subClass: KClass<*>, baseClass: KClass<*>): Nothing =
-    throwSubtypeNotRegistered(subClass.toString(), baseClass)
+    throwSubtypeNotRegistered(subClass.simpleName ?: "$subClass", baseClass)
